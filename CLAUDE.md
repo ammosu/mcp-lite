@@ -27,9 +27,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Web Interface:**
 - Use `npm run dev:web` then open http://localhost:3000 in your browser
-- Click "Tools" button in sidebar to see available MCP tools
-- Use /help, /tools, /clear commands in chat or click quick command buttons
+- Use `npm run dev:web --port 8080` for custom port
+- Click "Tools" button in sidebar to see available MCP tools with collapsible descriptions
+- Use /help, /tools, /clear, /status commands in chat or click quick command buttons
 - All MCP tools are automatically accessible through natural chat
+- Features streaming responses, collapsible tool execution details, and responsive design
+- System messages (like /clear confirmation) auto-disappear after 3 seconds
+- Full internationalization support with Traditional Chinese (Taiwan) and English
+- Language preferences saved automatically in browser localStorage
 
 **General:**
 - For SSE servers, ensure the remote endpoint is running before connecting
@@ -45,10 +50,17 @@ MCP Lite is a lightweight MCP (Model Context Protocol) client that bridges LLMs 
 - Handles all user interaction and command routing
 - Interactive prompts using Inquirer for server configuration
 
+**Web Server (`src/web/server.ts`)**
+- Express.js-based web interface with Server-Sent Events (SSE) for streaming
+- Session management for multiple concurrent chat sessions
+- Tool execution callbacks for real-time feedback display
+- Handles both regular chat and special commands (/help, /tools, /clear, /status)
+
 **Chat Engine (`src/chat/engine.ts`)**
 - Orchestrates conversation flow between user, LLM, and MCP tools
 - Manages conversation history and context
 - Handles automatic tool execution and result processing
+- Provides tool execution callbacks with detailed input/output for web interface
 
 **MCP Hub (`src/mcp/hub.ts`)**
 - Central connection manager for all MCP servers
@@ -120,3 +132,49 @@ MCP Lite is a lightweight MCP (Model Context Protocol) client that bridges LLMs 
 2. Run `npm run dev add-server` to set up first MCP server
 3. For SSE servers, ensure remote MCP server is running and accessible
 4. Use `npm run dev config` to verify configuration before chatting
+
+## Web Interface Features (v0.2.1+)
+
+### Modern UI/UX Design
+- Professional design system with consistent color palette and spacing
+- Responsive layout that works on desktop, tablet, and mobile devices
+- Smooth animations and transitions for better user experience
+- Accessibility features including ARIA labels and keyboard navigation
+
+### Chat Experience
+- **Streaming Responses**: See LLM responses appear word by word in real-time
+- **Markdown Support**: Rich formatting for code blocks, tables, lists, and links
+- **Message Bubbles**: Clean, modern message design with user/assistant distinction
+- **Auto-scrolling**: Automatic scroll to keep the latest messages visible
+
+### Tool Execution Display
+- **Collapsible Tool Details**: Click to expand/collapse tool execution information
+- **Input/Output Display**: See detailed tool call parameters and results
+- **Real-time Status**: Watch tool execution progress with status indicators
+- **Error Handling**: Clear error messages with proper visual feedback
+
+### Command Interface
+- **Quick Commands**: Sidebar buttons for /help, /tools, /clear, /status
+- **Slash Commands**: All CLI commands work in web interface with / prefix
+- **Auto-completion**: System messages disappear automatically after 3 seconds
+- **Command Feedback**: Clear confirmation messages for actions like /clear
+
+### Sidebar Features
+- **Collapsible Tool List**: Click to expand tool descriptions when needed
+- **Tool Count Display**: Shows number of available tools
+- **Independent Scrolling**: Tool list doesn't share scroll with chat area
+- **Responsive Behavior**: Adapts to different screen sizes gracefully
+
+### Session Management
+- **Multiple Sessions**: Each browser tab maintains separate chat history
+- **Session Persistence**: Chat history maintained during browser session
+- **Clean State Management**: Proper cleanup when clearing chat history
+
+### Internationalization (i18n)
+- **Language Support**: Traditional Chinese (繁體中文, Taiwan) and English
+- **Real-time Switching**: Change language instantly without page reload
+- **Comprehensive Translation**: All UI elements, commands, and system messages
+- **Persistent Settings**: Language preference saved in browser localStorage
+- **Default Language**: Traditional Chinese for Taiwan users, with easy English toggle
+- **Command Translation**: All slash commands (/help, /tools, etc.) responses translated
+- **Localized Formatting**: Appropriate number and date formatting for each locale

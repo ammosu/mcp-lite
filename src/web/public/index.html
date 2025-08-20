@@ -6,6 +6,7 @@
     <title>MCP Lite - Web Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <script src="/i18n/i18n.js"></script>
     <style>
         :root {
             /* Modern Color Palette */
@@ -607,6 +608,42 @@
             justify-content: center;
         }
 
+        .language-switcher {
+            margin-top: var(--space-6);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .language-switcher h4 {
+            color: var(--gray-800);
+            margin-bottom: var(--space-3);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .lang-options {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .lang-btn {
+            flex: 1;
+            font-size: 0.8rem;
+            padding: var(--space-2) var(--space-3);
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn.active {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            color: white;
+            border-color: var(--primary-600);
+        }
+
+        .lang-btn.active:hover {
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            border-color: var(--primary-700);
+        }
+
         @media (max-width: 640px) {
             .commands {
                 display: grid;
@@ -938,10 +975,10 @@
 </head>
 <body>
     <div class="header">
-        <h1>MCP Lite</h1>
+        <h1 data-i18n="header.title">MCP Lite</h1>
         <div class="status">
             <span class="status-dot" aria-label="Connection status indicator"></span>
-            <span>Connected</span>
+            <span data-i18n="header.status">Connected</span>
         </div>
     </div>
 
@@ -950,14 +987,14 @@
             <div class="chat-messages" id="chatMessages" role="log" aria-label="Chat conversation" aria-live="polite">
                 <div class="message system">
                     <div class="message-content">
-                        Welcome to MCP Lite Web Chat
-                        
-You can:
-• Chat normally with the AI assistant
-• Use commands like /help, /tools, /clear
-• Access all configured MCP tools automatically
-
-Type your message below to get started!
+                        <div data-i18n="welcome.title">Welcome to MCP Lite Web Chat</div>
+                        <br>
+                        <div data-i18n="welcome.subtitle">You can:</div>
+                        <div data-i18n="welcome.feature1">• Chat normally with the AI assistant</div>
+                        <div data-i18n="welcome.feature2">• Use commands like /help, /tools, /clear</div>
+                        <div data-i18n="welcome.feature3">• Access all configured MCP tools automatically</div>
+                        <br>
+                        <div data-i18n="welcome.cta">Type your message below to get started!</div>
                     </div>
                 </div>
                 
@@ -965,7 +1002,7 @@ Type your message below to get started!
             
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <span>Thinking...</span>
+                <span data-i18n="chat.loading">Thinking...</span>
             </div>
 
             <div class="chat-input">
@@ -973,28 +1010,29 @@ Type your message below to get started!
                     <input 
                         type="text" 
                         id="messageInput" 
-                        placeholder="Type your message or /help for commands..."
+                        data-i18n-placeholder="chat.input.placeholder"
+                        placeholder="Type your message..."
                         autocomplete="off"
                         aria-label="Chat message input"
                     >
-                    <button class="btn btn-primary" id="sendButton" aria-label="Send message">Send</button>
+                    <button class="btn btn-primary" id="sendButton" aria-label="Send message" data-i18n="chat.send">Send</button>
                 </div>
             </div>
         </div>
 
         <div class="sidebar">
             <div>
-                <h3>Quick Commands</h3>
+                <h3 data-i18n="sidebar.commands.title">⚡ Quick Commands</h3>
                 <div class="commands" role="group" aria-label="Quick command buttons">
-                    <button class="btn btn-small" onclick="sendCommand('/help')" aria-label="Send help command">Help</button>
-                    <button class="btn btn-small" onclick="sendCommand('/tools')" aria-label="List available tools">Tools</button>
-                    <button class="btn btn-small" onclick="sendCommand('/status')" aria-label="Show system status">Status</button>
-                    <button class="btn btn-small" onclick="sendCommand('/clear')" aria-label="Clear chat history">Clear</button>
+                    <button class="btn btn-small" onclick="sendCommand('/help')" aria-label="Send help command" data-i18n="sidebar.commands.help">Help</button>
+                    <button class="btn btn-small" onclick="sendCommand('/tools')" aria-label="List available tools" data-i18n="sidebar.commands.tools">Tools</button>
+                    <button class="btn btn-small" onclick="sendCommand('/status')" aria-label="Show system status" data-i18n="sidebar.commands.status">Status</button>
+                    <button class="btn btn-small" onclick="sendCommand('/clear')" aria-label="Clear chat history" data-i18n="sidebar.commands.clear">Clear</button>
                 </div>
             </div>
 
             <div class="tools-list">
-                <h3>Available Tools<span class="tool-count" id="toolsCount"></span></h3>
+                <h3 data-i18n="sidebar.tools.title">🔧 Available Tools<span class="tool-count" id="toolsCount"></span></h3>
                 <div id="toolsList" role="region" aria-label="Available MCP tools" aria-live="polite">Loading...</div>
             </div>
         </div>
@@ -1011,6 +1049,19 @@ Type your message below to get started!
                 this.toolsList = document.getElementById('toolsList');
 
                 this.setupEventListeners();
+                
+                // Initialize i18n system after DOM elements are ready
+                this.initializeApp();
+            }
+
+            async initializeApp() {
+                try {
+                    await window.i18n.init();
+                    console.log('i18n system initialized successfully');
+                } catch (error) {
+                    console.error('Failed to initialize i18n system:', error);
+                }
+                
                 this.loadTools();
             }
 
@@ -1088,6 +1139,9 @@ Type your message below to get started!
                                             // For command responses that don't have fullContent
                                             fullContent = data.content;
                                         }
+                                        
+                                        // Translate command responses if needed
+                                        fullContent = this.translateCommandResponse(fullContent);
                                         this.updateMessageContent(contentDiv, fullContent, true);
                                         
                                         // Special handling for /clear command
@@ -1117,11 +1171,53 @@ Type your message below to get started!
                     }
 
                 } catch (error) {
-                    this.updateMessageContent(contentDiv, 'Error: Failed to send message. Please try again.', true);
+                    this.updateMessageContent(contentDiv, window.i18n.t('chat.error.send'), true);
                     console.error('Chat error:', error);
                 } finally {
                     this.setLoading(false);
                 }
+            }
+
+            // Translate command responses based on current language
+            translateCommandResponse(content) {
+                if (window.i18n.currentLang === 'zh-TW') {
+                    // Help command translation
+                    if (content.includes('Available commands:')) {
+                        return content
+                            .replace('Available commands:', window.i18n.t('commands.help.title'))
+                            .replace('• /help - Show this help', window.i18n.t('commands.help.help'))
+                            .replace('• /tools - Show available MCP tools', window.i18n.t('commands.help.tools'))
+                            .replace('• /clear - Clear chat history', window.i18n.t('commands.help.clear'))
+                            .replace('• /status - Show session status', window.i18n.t('commands.help.status'))
+                            .replace('You can also use any available MCP tools by chatting normally!', window.i18n.t('commands.help.footer'));
+                    }
+                    
+                    // Tools command translation
+                    if (content.includes('Available MCP Tools:')) {
+                        content = content.replace('Available MCP Tools:', window.i18n.t('commands.tools.title'));
+                        if (content.includes('No tools available')) {
+                            content = content.replace('No tools available', window.i18n.t('commands.tools.none'));
+                        }
+                        return content;
+                    }
+                    
+                    // Clear command translation
+                    if (content.includes('Chat history cleared!')) {
+                        return content.replace('🧹 Chat history cleared!', window.i18n.t('commands.clear.success'));
+                    }
+                    
+                    // Status command translation
+                    if (content.includes('Session Status:')) {
+                        return content
+                            .replace('Session Status:', window.i18n.t('commands.status.title'))
+                            .replace('• Messages in history:', window.i18n.t('commands.status.messages'))
+                            .replace('• Available tools:', window.i18n.t('commands.status.tools'))
+                            .replace('• Available resources:', window.i18n.t('commands.status.resources'))
+                            .replace('• Connected MCP servers:', window.i18n.t('commands.status.servers'));
+                    }
+                }
+                
+                return content;
             }
 
             createMessageElement(content, sender) {
@@ -1330,7 +1426,7 @@ Type your message below to get started!
                 systemMessage.className = 'message system';
                 systemMessage.innerHTML = `
                     <div class="message-content">
-                        <em>Chat display cleared</em>
+                        <em>${window.i18n.t('chat.cleared')}</em>
                     </div>
                 `;
                 this.chatMessages.appendChild(systemMessage);
@@ -1357,7 +1453,12 @@ Type your message below to get started!
                     
                     if (data.tools && data.tools.length > 0) {
                         // Update tools count in sidebar
-                        document.getElementById('toolsCount').textContent = ` (${data.tools.length})`;
+                        const count = data.tools.length;
+                        const toolsCountText = window.i18n.currentLang === 'zh-TW' ? ` (${count} ${window.i18n.t('sidebar.tools.count')})` : ` (${count} ${window.i18n.t('sidebar.tools.count')})`;
+                        const toolsCountElement = document.getElementById('toolsCount');
+                        if (toolsCountElement) {
+                            toolsCountElement.textContent = toolsCountText;
+                        }
                         
                         // Update sidebar tools list
                         this.toolsList.innerHTML = '';
@@ -1388,11 +1489,17 @@ Type your message below to get started!
                         });
                     } else {
                         this.toolsList.innerHTML = '<div class="tool-desc">No tools available</div>';
-                        document.getElementById('toolsCount').textContent = ' (0)';
+                        const toolsCountElement = document.getElementById('toolsCount');
+                        if (toolsCountElement) {
+                            toolsCountElement.textContent = ' (0)';
+                        }
                     }
                 } catch (error) {
                     this.toolsList.innerHTML = '<div class="tool-desc">Failed to load tools</div>';
-                    document.getElementById('toolsCount').textContent = ' (Error)';
+                    const toolsCountElement = document.getElementById('toolsCount');
+                    if (toolsCountElement) {
+                        toolsCountElement.textContent = ' (Error)';
+                    }
                     console.error('Error loading tools:', error);
                 }
             }

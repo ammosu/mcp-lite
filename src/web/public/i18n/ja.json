@@ -1,0 +1,76 @@
+{
+  "header": {
+    "title": "MCP Lite",
+    "status": "接続済み"
+  },
+  "sidebar": {
+    "tools": {
+      "title": "🔧 利用可能なツール",
+      "count": "個のツール"
+    },
+    "commands": {
+      "title": "⚡ クイックコマンド",
+      "help": "ヘルプ",
+      "tools": "ツール",
+      "clear": "クリア",
+      "status": "ステータス"
+    }
+  },
+  "chat": {
+    "input": {
+      "placeholder": "メッセージを入力..."
+    },
+    "send": "送信",
+    "loading": "考え中...",
+    "error": {
+      "send": "エラー：メッセージの送信に失敗しました。再試行してください。"
+    },
+    "cleared": "チャット表示をクリアしました"
+  },
+  "tools": {
+    "executing": "🔧 実行中",
+    "completed": "✅ 完了",
+    "failed": "個が失敗",
+    "starting": "開始中..."
+  },
+  "commands": {
+    "help": {
+      "title": "利用可能なコマンド：",
+      "help": "• /help - このヘルプを表示",
+      "tools": "• /tools - 利用可能なMCPツールを表示",
+      "clear": "• /clear - チャット履歴をクリア",
+      "status": "• /status - セッションステータスを表示",
+      "footer": "自然な会話で利用可能なMCPツールを使用することもできます！"
+    },
+    "tools": {
+      "title": "利用可能なMCPツール：",
+      "none": "利用可能なツールがありません"
+    },
+    "clear": {
+      "success": "🧹 チャット履歴をクリアしました！"
+    },
+    "status": {
+      "title": "セッションステータス：",
+      "messages": "• 履歴内のメッセージ：",
+      "tools": "• 利用可能なツール：",
+      "resources": "• 利用可能なリソース：",
+      "servers": "• 接続されたMCPサーバー："
+    }
+  },
+  "welcome": {
+    "title": "MCP Lite ウェブチャットへようこそ",
+    "subtitle": "できること：",
+    "feature1": "• AIアシスタントと自然に会話する",
+    "feature2": "• /help、/tools、/clearなどのコマンドを使用する",
+    "feature3": "• 設定されたすべてのMCPツールに自動でアクセスする",
+    "cta": "下にメッセージを入力して開始してください！"
+  },
+  "settings": {
+    "language": "言語",
+    "languageOptions": {
+      "en": "English",
+      "zh-TW": "繁體中文",
+      "ja": "日本語"
+    }
+  }
+}

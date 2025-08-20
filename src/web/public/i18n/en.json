@@ -1,0 +1,76 @@
+{
+  "header": {
+    "title": "MCP Lite",
+    "status": "Connected"
+  },
+  "sidebar": {
+    "tools": {
+      "title": "🔧 Available Tools",
+      "count": "tools"
+    },
+    "commands": {
+      "title": "⚡ Quick Commands",
+      "help": "Help",
+      "tools": "Tools",
+      "clear": "Clear",
+      "status": "Status"
+    }
+  },
+  "chat": {
+    "input": {
+      "placeholder": "Type your message..."
+    },
+    "send": "Send",
+    "loading": "Thinking...",
+    "error": {
+      "send": "Error: Failed to send message. Please try again."
+    },
+    "cleared": "Chat display cleared"
+  },
+  "tools": {
+    "executing": "🔧 Executing",
+    "completed": "✅ Completed",
+    "failed": "failed",
+    "starting": "Starting..."
+  },
+  "commands": {
+    "help": {
+      "title": "Available commands:",
+      "help": "• /help - Show this help",
+      "tools": "• /tools - Show available MCP tools",
+      "clear": "• /clear - Clear chat history",
+      "status": "• /status - Show session status",
+      "footer": "You can also use any available MCP tools by chatting normally!"
+    },
+    "tools": {
+      "title": "Available MCP Tools:",
+      "none": "No tools available"
+    },
+    "clear": {
+      "success": "🧹 Chat history cleared!"
+    },
+    "status": {
+      "title": "Session Status:",
+      "messages": "• Messages in history:",
+      "tools": "• Available tools:",
+      "resources": "• Available resources:",
+      "servers": "• Connected MCP servers:"
+    }
+  },
+  "welcome": {
+    "title": "Welcome to MCP Lite Web Chat",
+    "subtitle": "You can:",
+    "feature1": "• Chat normally with the AI assistant",
+    "feature2": "• Use commands like /help, /tools, /clear",
+    "feature3": "• Access all configured MCP tools automatically",
+    "cta": "Type your message below to get started!"
+  },
+  "settings": {
+    "language": "Language",
+    "languageOptions": {
+      "en": "English",
+      "zh-TW": "繁體中文",
+      "ja": "日本語"
+    }
+  }
+}

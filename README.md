@@ -11,6 +11,7 @@ A lightweight MCP (Model Context Protocol) client with LLM integration, supporti
 - 📡 **Multiple Transports**: STDIO and SSE (Server-Sent Events) support
 - 💬 **Dual Interface**: Both CLI and web-based chat interfaces
 - 🌐 **Modern Web UI**: Streaming responses, collapsible tool details, responsive design
+- 🌍 **Internationalization**: Full i18n support with Traditional Chinese (台灣正體) and English
 - ⚙️ **Easy Configuration**: Environment-based configuration
 - 🛠️ **Tool Auto-Execution**: Automatic execution of MCP tools with detailed I/O display
 - 🔄 **Backward Compatible**: Supports legacy configuration formats
@@ -112,8 +113,9 @@ npm run dev:web --port 8080
 
 **Web Only:**
 - Quick command buttons in sidebar
-- Collapsible tool descriptions
+- Collapsible tool descriptions  
 - Auto-disappearing system messages
+- Language switcher (Traditional Chinese ⇄ English)
 
 ## Architecture
 
@@ -203,6 +205,7 @@ $ npm run dev:web
 - **Responsive Design**: Works on desktop, tablet, and mobile
 - **Quick Commands**: Sidebar buttons for /help, /tools, /clear
 - **Auto-disappearing Messages**: System messages fade after 3 seconds
+- **Language Support**: Switch between Traditional Chinese (繁體中文) and English
 
 ### Tool Management
 ```bash
