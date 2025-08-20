@@ -6,6 +6,7 @@ import { McpHub } from '../mcp/hub.js';
 import { LLMFactory } from '../llm/factory.js';
 import { ChatEngine } from '../chat/engine.js';
 import { WebServer } from '../web/server.js';
+import { BatchProcessor } from '../batch/processor.js';
 import { McpServerWithName } from '../types/index.js';
 
 export class CLI {
@@ -54,6 +55,19 @@ export class CLI {
       .command('config')
       .description('Show current configuration')
       .action(this.configCommand.bind(this));
+
+    program
+      .command('batch')
+      .description('Process questions from CSV file in batch')
+      .requiredOption('-i, --input <file>', 'Input CSV file path')
+      .requiredOption('-o, --output <file>', 'Output file path')
+      .option('-f, --format <format>', 'Output format: csv or json', 'csv')
+      .option('-c, --concurrency <number>', 'Max concurrent requests', '1')
+      .option('-t, --temperature <number>', 'Temperature for LLM', '0.7')
+      .option('-m, --max-tokens <number>', 'Maximum tokens', '2000')
+      .option('--no-context', 'Exclude context column from output')
+      .option('--stop-on-error', 'Stop processing on first error')
+      .action(this.batchCommand.bind(this));
 
     await program.parseAsync();
   }
@@ -157,7 +171,7 @@ export class CLI {
       
       if (server.type === 'stdio') {
         console.log(`    Command: ${server.command} ${server.args?.join(' ') || ''}`);
-      } else if (server.type === 'sse') {
+      } else if (server.type === 'sse' || server.type === 'http') {
         console.log(`    URL: ${server.url}`);
       }
       console.log();
@@ -173,6 +187,7 @@ export class CLI {
         choices: [
           { name: 'STDIO (Local process)', value: 'stdio' },
           { name: 'SSE (Server-Sent Events)', value: 'sse' },
+          { name: 'HTTP (Streamable HTTP)', value: 'http' },
         ],
       },
     ]);
@@ -210,7 +225,7 @@ export class CLI {
         timeout: 60,
         autoApprove: [],
       };
-    } else {
+    } else if (transportAnswer.transport === 'sse') {
       // SSE transport
       const answers = await inquirer.prompt([
         {
@@ -237,6 +252,38 @@ export class CLI {
       server = {
         name: answers.name.trim(),
         type: 'sse',
+        url: answers.url.trim(),
+        disabled: false,
+        timeout: 60,
+        autoApprove: [],
+      };
+    } else {
+      // HTTP transport
+      const answers = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'name',
+          message: 'Server name:',
+          validate: (input) => input.trim().length > 0 || 'Name is required',
+        },
+        {
+          type: 'input',
+          name: 'url',
+          message: 'HTTP endpoint URL:',
+          validate: (input) => {
+            try {
+              new URL(input.trim());
+              return true;
+            } catch {
+              return 'Please enter a valid URL';
+            }
+          },
+        },
+      ]);
+
+      server = {
+        name: answers.name.trim(),
+        type: 'http',
         url: answers.url.trim(),
         disabled: false,
         timeout: 60,
@@ -283,6 +330,107 @@ export class CLI {
       console.log(`  Config Dir: ${chalk.gray(this.configManager.getConfigDir())}`);
     } catch (error) {
       console.error(chalk.red('❌ Failed to load config:'), error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  private async batchCommand(options: any): Promise<void> {
+    try {
+      console.log(chalk.blue('🚀 Initializing MCP Lite for batch processing...'));
+
+      // Validate input file
+      try {
+        const fs = await import('fs/promises');
+        await fs.access(options.input);
+      } catch (error) {
+        console.error(chalk.red('❌ Input file not found:'), options.input);
+        process.exit(1);
+      }
+
+      // Validate output format
+      if (options.format !== 'csv' && options.format !== 'json') {
+        console.error(chalk.red('❌ Invalid format:'), options.format, '(must be csv or json)');
+        process.exit(1);
+      }
+
+      // Load configuration
+      const config = await this.configManager.loadConfig();
+      console.log(chalk.green(`📋 Loaded config: ${config.llmProvider} (${config.model})`));
+
+      // Create LLM instance
+      const llm = LLMFactory.create(config.llmProvider, config.apiKey, config.model);
+      console.log(chalk.green('🧠 LLM initialized'));
+
+      // Load and connect MCP servers
+      const mcpServers = await this.configManager.loadMcpServers();
+      let connectedServers = 0;
+      
+      for (const serverConfig of mcpServers) {
+        try {
+          await this.mcpHub.addServer(serverConfig);
+          connectedServers++;
+          console.log(chalk.green(`✅ Connected to ${serverConfig.name}`));
+        } catch (error) {
+          console.log(chalk.yellow(`⚠️  Failed to connect to ${serverConfig.name}: ${error}`));
+        }
+      }
+
+      if (connectedServers === 0) {
+        console.log(chalk.yellow('⚠️  No MCP servers connected. Continuing with LLM-only processing.'));
+      } else {
+        console.log(chalk.green(`🔗 Connected to ${connectedServers} MCP server(s)`));
+      }
+
+      // Create chat engine and batch processor
+      const chatEngine = new ChatEngine(llm, this.mcpHub);
+      const batchProcessor = new BatchProcessor(chatEngine);
+
+      console.log(chalk.green('✅ Batch processor ready!'));
+      console.log();
+
+      // Process batch
+      const batchOptions = {
+        maxConcurrency: parseInt(options.concurrency),
+        temperature: parseFloat(options.temperature),
+        maxTokens: parseInt(options.maxTokens),
+        autoExecuteTools: true,
+        outputFormat: options.format as 'csv' | 'json',
+        includeContext: !options.noContext,
+        continueOnError: !options.stopOnError,
+      };
+
+      console.log(chalk.blue('📊 Batch processing options:'));
+      console.log(`  Input: ${chalk.cyan(options.input)}`);
+      console.log(`  Output: ${chalk.cyan(options.output)}`);
+      console.log(`  Format: ${chalk.cyan(options.format)}`);
+      console.log(`  Concurrency: ${chalk.cyan(batchOptions.maxConcurrency)}`);
+      console.log(`  Temperature: ${chalk.cyan(batchOptions.temperature)}`);
+      console.log(`  Max Tokens: ${chalk.cyan(batchOptions.maxTokens)}`);
+      console.log(`  Include Context: ${chalk.cyan(batchOptions.includeContext)}`);
+      console.log(`  Continue on Error: ${chalk.cyan(batchOptions.continueOnError)}`);
+      console.log();
+
+      // Start processing
+      await batchProcessor.processFromFile(
+        options.input,
+        options.output,
+        batchOptions
+      );
+
+      // Disconnect from MCP servers
+      await this.mcpHub.disconnect();
+      console.log(chalk.green('\n🎯 Batch processing completed successfully!'));
+
+    } catch (error) {
+      console.error(chalk.red('❌ Batch processing failed:'), error instanceof Error ? error.message : String(error));
+      
+      // Cleanup
+      try {
+        await this.mcpHub.disconnect();
+      } catch (cleanupError) {
+        console.error(chalk.gray('Warning: Failed to cleanup MCP connections'));
+      }
+      
+      process.exit(1);
     }
   }
 

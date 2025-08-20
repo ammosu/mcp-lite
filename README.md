@@ -8,7 +8,7 @@ A lightweight MCP (Model Context Protocol) client with LLM integration, supporti
 
 - 🤖 **Multi-LLM Support**: OpenAI, Anthropic (Google coming soon)
 - 🔧 **Standard MCP Format**: Compatible with Claude Code/Cline configuration
-- 📡 **Multiple Transports**: STDIO and SSE (Server-Sent Events) support
+- 📡 **Multiple Transports**: STDIO, SSE (Server-Sent Events), and HTTP support
 - 💬 **Dual Interface**: Both CLI and web-based chat interfaces
 - 🌐 **Modern Web UI**: Streaming responses, collapsible tool details, responsive design
 - 🌍 **Internationalization**: Full i18n support with Traditional Chinese (台灣正體) and English
@@ -65,6 +65,10 @@ Example MCP servers you can try:
 **SSE Servers (Remote endpoints):**
 - Any MCP server running with SSE transport
 - Example: `http://localhost:3000/sse` if you have a server running locally
+
+**HTTP Servers (Remote endpoints):**
+- Any MCP server running with HTTP streamable transport
+- Example: `http://localhost:4000/mcp` for HTTP-based MCP servers
 
 ### 4. Start Chatting
 
@@ -256,9 +260,16 @@ MCP servers are stored in `~/.mcp-lite/mcp-servers.json` using the standard MCP 
       "timeout": 60,
       "autoApprove": []
     },
-    "rental-server": {
+    "sse-server": {
       "type": "sse",
       "url": "http://127.0.0.1:3000/sse",
+      "disabled": false,
+      "timeout": 60,
+      "autoApprove": []
+    },
+    "http-server": {
+      "type": "http",
+      "url": "http://127.0.0.1:4000/mcp",
       "disabled": false,
       "timeout": 60,
       "autoApprove": []
@@ -268,11 +279,11 @@ MCP servers are stored in `~/.mcp-lite/mcp-servers.json` using the standard MCP 
 ```
 
 **Configuration Fields:**
-- `type`: Transport type (`stdio` or `sse`)
+- `type`: Transport type (`stdio`, `sse`, or `http`)
 - `command`: Executable command (required for `stdio`)
 - `args`: Command line arguments (optional)
 - `env`: Environment variables (optional)
-- `url`: Server endpoint URL (required for `sse`)
+- `url`: Server endpoint URL (required for `sse` and `http`)
 - `disabled`: Whether the server is disabled (default: `false`)
 - `timeout`: Request timeout in seconds (default: `60`)
 - `autoApprove`: List of auto-approved tool patterns (default: `[]`)

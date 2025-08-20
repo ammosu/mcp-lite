@@ -16,6 +16,7 @@ const requiredFiles = [
   '.env.example',
   'README.md',
   'SETUP.md',
+  'HTTP_TRANSPORT.md',
   'src/index.ts',
   'src/types/index.ts',
   'src/llm/base.ts',
@@ -26,6 +27,8 @@ const requiredFiles = [
   'src/chat/engine.ts',
   'src/cli/index.ts',
   'src/config/manager.ts',
+  'examples/http-server.js',
+  'examples/package.json',
 ];
 
 async function verify() {

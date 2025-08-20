@@ -10,7 +10,7 @@ const LEGACY_MCP_SERVERS_SCHEMA = z.array(z.object({
   command: z.string(),
   args: z.array(z.string()).default([]),
   env: z.record(z.string()).optional(),
-  transport: z.enum(['stdio', 'http', 'sse']).default('stdio'),
+  transport: z.enum(['stdio', 'sse', 'http']).default('stdio'),
   url: z.string().optional(),
 }));
 
@@ -86,7 +86,7 @@ export class ConfigManager {
         const legacyConfig = LEGACY_MCP_SERVERS_SCHEMA.parse(data);
         return legacyConfig.map(server => ({
           ...server,
-          type: server.transport as 'stdio' | 'sse',
+          type: server.transport as 'stdio' | 'sse' | 'http',
           disabled: false,
           timeout: 60,
           autoApprove: [],

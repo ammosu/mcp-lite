@@ -1,6 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { CallToolResultSchema, ListToolsResultSchema, ListResourcesResultSchema, ReadResourceResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { spawn, ChildProcess } from 'child_process';
 import {
@@ -16,7 +17,7 @@ import {
 interface McpConnection {
   config: McpServerWithName;
   client: Client;
-  transport: StdioClientTransport | SSEClientTransport;
+  transport: StdioClientTransport | SSEClientTransport | StreamableHTTPClientTransport;
   process?: ChildProcess;
   connected: boolean;
   tools: McpTool[];
@@ -144,7 +145,7 @@ export class McpHub {
 
   private async createConnection(config: McpServerWithName): Promise<McpConnection> {
     let process: ChildProcess | undefined;
-    let transport: StdioClientTransport | SSEClientTransport;
+    let transport: StdioClientTransport | SSEClientTransport | StreamableHTTPClientTransport;
 
     if (config.type === 'stdio') {
       if (!config.command) {
@@ -161,6 +162,12 @@ export class McpHub {
       }
 
       transport = new SSEClientTransport(new URL(config.url));
+    } else if (config.type === 'http') {
+      if (!config.url) {
+        throw new Error('HTTP transport requires a URL in the config');
+      }
+
+      transport = new StreamableHTTPClientTransport(new URL(config.url));
     } else {
       throw new Error(`Unknown transport type: ${config.type}`);
     }

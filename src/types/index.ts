@@ -16,7 +16,7 @@ export type Config = z.infer<typeof ConfigSchema>;
 // MCP Server Configuration (Standard Format)
 export const McpServerConfigSchema = z.object({
   // Standard MCP fields
-  type: z.enum(['stdio', 'sse']).default('stdio'), // 'http' removed as it's typically 'sse'
+  type: z.enum(['stdio', 'sse', 'http']).default('stdio'),
   command: z.string().optional(), // Optional for SSE servers
   args: z.array(z.string()).optional(),
   env: z.record(z.string()).optional(),

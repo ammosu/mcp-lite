@@ -65,8 +65,13 @@ Example server configurations:
 
 **SSE Remote Server:**
 - Transport: `SSE (Server-Sent Events)`
-- Name: `remote-server`
+- Name: `sse-server`
 - SSE endpoint URL: `http://localhost:3000/sse`
+
+**HTTP Remote Server:**
+- Transport: `HTTP (Streamable HTTP)`
+- Name: `http-server`
+- HTTP endpoint URL: `http://localhost:4000/mcp`
 
 ### 3. Test Chat
 ```bash
