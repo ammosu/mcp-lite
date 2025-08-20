@@ -91,3 +91,4 @@ logs
 
 # MCP server configuration files (should be in user directory)
 mcp-servers.json
+.claude/

@@ -9,9 +9,10 @@ A lightweight MCP (Model Context Protocol) client with LLM integration, supporti
 - 🤖 **Multi-LLM Support**: OpenAI, Anthropic (Google coming soon)
 - 🔧 **Standard MCP Format**: Compatible with Claude Code/Cline configuration
 - 📡 **Multiple Transports**: STDIO and SSE (Server-Sent Events) support
-- 💬 **Interactive Chat**: Command-line chat interface
+- 💬 **Dual Interface**: Both CLI and web-based chat interfaces
+- 🌐 **Modern Web UI**: Streaming responses, collapsible tool details, responsive design
 - ⚙️ **Easy Configuration**: Environment-based configuration
-- 🛠️ **Tool Auto-Execution**: Automatic execution of MCP tools
+- 🛠️ **Tool Auto-Execution**: Automatic execution of MCP tools with detailed I/O display
 - 🔄 **Backward Compatible**: Supports legacy configuration formats
 
 ## Quick Start
@@ -66,16 +67,33 @@ Example MCP servers you can try:
 
 ### 4. Start Chatting
 
+**CLI Interface:**
 ```bash
 npm run dev chat
+```
+
+**Web Interface:**
+```bash
+npm run dev:web
+```
+Then open http://localhost:3000 in your browser.
+
+**Custom Port:**
+```bash
+npm run dev:web --port 8080
 ```
 
 ## Commands
 
 ### Chat Commands
-- `npm run dev chat` - Start interactive chat
+**CLI Interface:**
+- `npm run dev chat` - Start interactive CLI chat
 - `npm run dev chat --temperature 0.9` - Set creativity level
 - `npm run dev chat --no-auto-tools` - Manual tool execution
+
+**Web Interface:**
+- `npm run dev:web` - Start web server (default port 3000)
+- `npm run dev:web --port 8080` - Start on custom port
 
 ### Server Management
 - `npm run dev servers` - List configured servers
@@ -83,57 +101,75 @@ npm run dev chat
 - `npm run dev config` - Show current configuration
 
 ### Chat Session Commands
-- `help` - Show available commands
-- `tools` - List available MCP tools and resources
-- `clear` - Clear chat history
-- `exit` - Exit chat
+**Available in both CLI and Web interfaces:**
+- `/help` - Show available commands
+- `/tools` - List available MCP tools and resources
+- `/clear` - Clear chat history
+- `/status` - Show session status
+
+**CLI Only:**
+- `exit` - Exit chat session
+
+**Web Only:**
+- Quick command buttons in sidebar
+- Collapsible tool descriptions
+- Auto-disappearing system messages
 
 ## Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   CLI Interface │    │   Chat Engine   │    │   LLM Factory   │
+│   CLI Interface │    │   Web Server    │    │   Chat Engine   │
+│                 │    │   (Express.js)  │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Config Manager  │    │    MCP Hub      │    │  LLM Providers  │
+│ Config Manager  │    │    MCP Hub      │    │   LLM Factory   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  MCP Servers    │◄───┤  Tool Execution │    │    OpenAI       │
-│  Configuration  │    │   & Resources   │    │   Anthropic     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+│  MCP Servers    │◄───┤  Tool Execution │    │  LLM Providers  │
+│  Configuration  │    │   & Resources   │    │ (OpenAI,        │
+└─────────────────┘    └─────────────────┘    │  Anthropic)     │
+                                              └─────────────────┘
 ```
 
 ## Key Components
 
-### 1. **MCP Hub** (`src/mcp/hub.ts`)
+### 1. **Web Server** (`src/web/server.ts`)
+- Express.js-based web interface
+- Server-Sent Events (SSE) for streaming responses
+- Tool execution callbacks with detailed I/O display
+- Session management for multiple chat sessions
+
+### 2. **MCP Hub** (`src/mcp/hub.ts`)
 - Manages connections to MCP servers
 - Handles tool calls and resource access
 - Similar to Cline's McpHub
 
-### 2. **Chat Engine** (`src/chat/engine.ts`)
+### 3. **Chat Engine** (`src/chat/engine.ts`)
 - Orchestrates conversation flow
 - Integrates LLM responses with MCP tool execution
 - Handles multi-turn conversations
+- Provides tool execution callbacks for real-time feedback
 
-### 3. **LLM Factory** (`src/llm/factory.ts`)
+### 4. **LLM Factory** (`src/llm/factory.ts`)
 - Abstract interface for different LLM providers
 - Consistent API across OpenAI, Anthropic, etc.
 - Tool calling support
 
-### 4. **Config Manager** (`src/config/manager.ts`)
+### 5. **Config Manager** (`src/config/manager.ts`)
 - Environment-based configuration
 - MCP server persistence
 - User settings management
 
 ## Example Usage
 
-### Basic Chat
+### CLI Chat
 ```bash
 $ npm run dev chat
 🤖 Initializing MCP Lite...
@@ -149,6 +185,24 @@ You: What files are in my home directory?
    call_abc123: ✅
 🤖 Assistant: I can see your home directory contains...
 ```
+
+### Web Interface
+
+```bash
+$ npm run dev:web
+🌐 Starting MCP Lite Web Server on port 3000...
+🌐 Initializing MCP Lite Web Server...
+✅ Connected to MCP server: filesystem
+🚀 MCP Lite Web Server running at http://localhost:3000
+```
+
+**Features:**
+- **Streaming Responses**: See responses appear word by word
+- **Tool Execution Display**: Collapsible details showing tool input/output
+- **Markdown Support**: Rich formatting for code blocks, tables, lists
+- **Responsive Design**: Works on desktop, tablet, and mobile
+- **Quick Commands**: Sidebar buttons for /help, /tools, /clear
+- **Auto-disappearing Messages**: System messages fade after 3 seconds
 
 ### Tool Management
 ```bash
@@ -225,15 +279,27 @@ MCP servers are stored in `~/.mcp-lite/mcp-servers.json` using the standard MCP 
 ## Development
 
 ```bash
-# Development mode
-npm run dev
+# Development mode (CLI)
+npm run dev chat
 
-# Build
+# Development mode (Web)
+npm run dev:web
+
+# Build for production
 npm run build
 
-# Production
-npm start
+# Production (CLI)
+npm start chat
+
+# Production (Web)
+npm run start:web
 ```
+
+### Build & Production Scripts
+- `npm run build` - Compile TypeScript to JavaScript
+- `npm start` - Run compiled CLI version
+- `npm run start:web` - Run compiled web interface
+- `npm run verify` - Verify project structure and dependencies
 
 ## Inspired By
 
