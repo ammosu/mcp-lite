@@ -5,6 +5,7 @@ import { ConfigManager } from '../config/manager.js';
 import { McpHub } from '../mcp/hub.js';
 import { LLMFactory } from '../llm/factory.js';
 import { ChatEngine } from '../chat/engine.js';
+import { WebServer } from '../web/server.js';
 import { McpServerWithName } from '../types/index.js';
 
 export class CLI {
@@ -32,6 +33,12 @@ export class CLI {
       .option('-m, --max-tokens <number>', 'Maximum tokens', '2000')
       .option('--no-auto-tools', 'Disable automatic tool execution')
       .action(this.chatCommand.bind(this));
+
+    program
+      .command('web')
+      .description('Start web-based chat interface')
+      .option('-p, --port <number>', 'Port to run web server on', '3000')
+      .action(this.webCommand.bind(this));
 
     program
       .command('servers')
@@ -239,6 +246,30 @@ export class CLI {
 
     await this.configManager.addMcpServer(server);
     console.log(chalk.green(`✅ Added ${server.type.toUpperCase()} server: ${server.name}`));
+  }
+
+  private async webCommand(options: any): Promise<void> {
+    try {
+      const port = parseInt(options.port);
+      
+      console.log(chalk.blue(`🌐 Starting MCP Lite Web Server on port ${port}...`));
+      
+      const webServer = new WebServer(port);
+      
+      // Handle graceful shutdown
+      process.on('SIGINT', async () => {
+        console.log(chalk.yellow('\n🛑 Shutting down web server...'));
+        await webServer.stop();
+        console.log(chalk.green('👋 Goodbye!'));
+        process.exit(0);
+      });
+
+      await webServer.start();
+
+    } catch (error) {
+      console.error(chalk.red('❌ Failed to start web server:'), error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
   }
 
   private async configCommand(): Promise<void> {

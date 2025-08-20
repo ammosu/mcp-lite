@@ -6,19 +6,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Development Commands
 - `npm run dev <command>` - Main CLI entry point using tsx for development
-- `npm run dev chat` - Start interactive chat session with connected MCP servers
+- `npm run dev chat` - Start interactive CLI chat session with connected MCP servers
+- `npm run dev:web` - Start web-based chat interface (default port 3000)
+- `npm run dev web --port 8080` - Start web interface on custom port
 - `npm run dev add-server` - Interactive wizard to add new MCP servers
 - `npm run dev servers` - List all configured MCP servers and their status
 - `npm run dev config` - Display current configuration (LLM provider, model, etc.)
 
 ### Build and Production
 - `npm run build` - Compile TypeScript to JavaScript in `/dist`
-- `npm start` - Run the compiled version from `/dist`
+- `npm start` - Run the compiled CLI version from `/dist`
+- `npm run start:web` - Run the compiled web interface from `/dist`
 - `npm run verify` - Verify project structure and dependencies (runs automatically after install)
 
 ### Testing MCP Integration
+
+**CLI Interface:**
 - Use `npm run dev chat` then type `tools` to see available MCP tools
 - Use `npm run dev chat` then type `help` for chat session commands
+
+**Web Interface:**
+- Use `npm run dev:web` then open http://localhost:3000 in your browser
+- Click "Tools" button in sidebar to see available MCP tools
+- Use /help, /tools, /clear commands in chat or click quick command buttons
+- All MCP tools are automatically accessible through natural chat
+
+**General:**
 - For SSE servers, ensure the remote endpoint is running before connecting
 
 ## Architecture Overview

@@ -13,6 +13,16 @@ export interface ChatOptions {
   maxTokens?: number;
   maxTurns?: number;
   autoExecuteTools?: boolean;
+  onToolExecution?: (info: ToolExecutionInfo) => void;
+}
+
+export interface ToolExecutionInfo {
+  type: 'tool_start' | 'tool_complete' | 'tool_error';
+  toolName?: string;
+  toolCallId?: string;
+  message: string;
+  input?: string;
+  output?: string;
 }
 
 export class ChatEngine {
@@ -78,11 +88,29 @@ export class ChatEngine {
 
       // Execute tool calls if auto-execution is enabled
       if (autoExecuteTools) {
-        const toolResults = await this.executeToolCalls(response.toolCalls);
+        // Notify about tool execution start
+        if (options.onToolExecution) {
+          options.onToolExecution({
+            type: 'tool_start',
+            message: `🔧 Executing ${response.toolCalls.length} tool(s)...`
+          });
+        }
+
+        const toolResults = await this.executeToolCalls(response.toolCalls, options.onToolExecution);
         assistantMessage.toolResults = toolResults;
 
         // Add assistant message with tool results
         this.messages.push(assistantMessage);
+
+        // Notify about completion
+        if (options.onToolExecution) {
+          const successCount = toolResults.filter(r => !r.isError).length;
+          const errorCount = toolResults.filter(r => r.isError).length;
+          options.onToolExecution({
+            type: 'tool_complete',
+            message: `✅ Completed ${successCount} tool(s)${errorCount > 0 ? `, ${errorCount} failed` : ''}`
+          });
+        }
 
         // Continue the conversation with tool results
         console.log(`🔧 Executed ${toolResults.length} tool(s)`);
@@ -107,12 +135,24 @@ export class ChatEngine {
     return finalResponse;
   }
 
-  private async executeToolCalls(toolCalls: ToolCall[]): Promise<ToolResult[]> {
+  private async executeToolCalls(toolCalls: ToolCall[], onToolExecution?: (info: ToolExecutionInfo) => void): Promise<ToolResult[]> {
     const results: ToolResult[] = [];
 
     for (const toolCall of toolCalls) {
       try {
         const args = JSON.parse(toolCall.function.arguments);
+        
+        // Notify about individual tool execution with input
+        if (onToolExecution) {
+          onToolExecution({
+            type: 'tool_start',
+            toolName: toolCall.function.name,
+            toolCallId: toolCall.id,
+            message: `   ${toolCall.function.name}: Starting...`,
+            input: JSON.stringify(args, null, 2)
+          });
+        }
+
         const result = await this.executeToolCall(toolCall.function.name, args);
         
         results.push({
@@ -120,12 +160,36 @@ export class ChatEngine {
           content: result,
           isError: false,
         });
+
+        // Notify about successful completion with output
+        if (onToolExecution) {
+          onToolExecution({
+            type: 'tool_complete',
+            toolName: toolCall.function.name,
+            toolCallId: toolCall.id,
+            message: `   ${toolCall.id}: ✅`,
+            output: result
+          });
+        }
       } catch (error) {
         results.push({
           toolCallId: toolCall.id,
           content: `Error: ${error instanceof Error ? error.message : String(error)}`,
           isError: true,
         });
+
+        // Notify about error
+        if (onToolExecution) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          onToolExecution({
+            type: 'tool_error',
+            toolName: toolCall.function.name,
+            toolCallId: toolCall.id,
+            message: `   ${toolCall.id}: ❌ ${errorMessage}`,
+            input: toolCall.function.arguments,
+            output: `Error: ${errorMessage}`
+          });
+        }
       }
     }
 

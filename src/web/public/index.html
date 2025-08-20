@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Lite - Web Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #2d3748;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #48bb78;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: calc(100vh - 6rem);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            display: flex;
+            max-width: 80%;
+            gap: 0.5rem;
+        }
+
+        .message.user {
+            align-self: flex-end;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+        }
+
+        .message-content {
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .message-content.markdown {
+            white-space: normal;
+        }
+
+        .message-content.text {
+            white-space: pre-wrap;
+        }
+
+        /* Markdown styles */
+        .message-content h1,
+        .message-content h2,
+        .message-content h3,
+        .message-content h4,
+        .message-content h5,
+        .message-content h6 {
+            margin: 0.5rem 0 0.25rem 0;
+            font-weight: 600;
+        }
+
+        .message-content h1 { font-size: 1.25rem; }
+        .message-content h2 { font-size: 1.15rem; }
+        .message-content h3 { font-size: 1.1rem; }
+
+        .message-content p {
+            margin: 0.5rem 0;
+        }
+
+        .message-content code {
+            background: rgba(0,0,0,0.1);
+            padding: 0.125rem 0.25rem;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .message-content pre {
+            background: rgba(0,0,0,0.05);
+            padding: 0.75rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+            border-left: 3px solid #4299e1;
+        }
+
+        .message-content pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .message-content ul,
+        .message-content ol {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .message-content li {
+            margin: 0.25rem 0;
+        }
+
+        .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0.5rem 0;
+            font-size: 0.9em;
+        }
+
+        .message-content th,
+        .message-content td {
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        .message-content th {
+            background: rgba(0,0,0,0.05);
+            font-weight: 600;
+        }
+
+        .message-content blockquote {
+            border-left: 4px solid #cbd5e0;
+            padding-left: 1rem;
+            margin: 0.5rem 0;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .message-content a {
+            color: #4299e1;
+            text-decoration: none;
+        }
+
+        .message-content a:hover {
+            text-decoration: underline;
+        }
+
+        .message.user .message-content {
+            background: #4299e1;
+            color: white;
+        }
+
+        .message.assistant .message-content {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .message.system .message-content {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input input:focus {
+            border-color: #4299e1;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #3182ce;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .sidebar h3 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .tools-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .tool-item {
+            margin-bottom: 0.5rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .tool-item:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .tool-header {
+            padding: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            color: #2d3748;
+            flex: 1;
+        }
+
+        .tool-toggle {
+            color: #718096;
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+
+        .tool-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        .tool-desc {
+            color: #718096;
+            margin: 0;
+            padding: 0 0.75rem 0.75rem 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            border-top: 1px solid #e2e8f0;
+            background: #fff;
+            display: none;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .tool-desc.expanded {
+            display: block;
+        }
+
+        .tool-count {
+            color: #718096;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .tools-hint {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #234e52;
+        }
+
+        .tools-hint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+
+        .tools-hint-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tools-hint-toggle {
+            color: #4a5568;
+            transition: transform 0.2s;
+        }
+
+        .tools-hint-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        .tools-hint-content {
+            display: none;
+            border-top: 1px solid #81e6d9;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .tools-hint-content.expanded {
+            display: block;
+        }
+
+        .tools-hint-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .tools-hint-item {
+            padding: 0.25rem 0.5rem;
+            background: #b2f5ea;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #1a202c;
+        }
+
+        .tool-execution {
+            background: #fef5e7;
+            border: 1px solid #f6e05e;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+            color: #744210;
+        }
+
+        .tool-execution.completed {
+            background: #f0fff4;
+            border-color: #9ae6b4;
+            color: #22543d;
+        }
+
+        .tool-execution.error {
+            background: #fed7d7;
+            border-color: #feb2b2;
+            color: #742a2a;
+        }
+
+        .tool-execution-header {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tool-execution-toggle {
+            font-size: 0.7rem;
+            color: #666;
+            transition: transform 0.2s;
+        }
+
+        .tool-execution-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        .tool-execution-details {
+            display: none;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+
+        .tool-execution-details.expanded {
+            display: block;
+        }
+
+        .tool-call {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: rgba(255,255,255,0.5);
+            border-radius: 4px;
+            border-left: 3px solid #4299e1;
+        }
+
+        .tool-call-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-call-section {
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-call-section-title {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .tool-call-content {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .commands {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: #718096;
+            padding: 1rem;
+            justify-self: center;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e2e8f0;
+            border-top: 2px solid #4299e1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 0.5rem;
+                gap: 0.5rem;
+            }
+
+            .sidebar {
+                width: 100%;
+                order: 2;
+                max-height: 250px;
+            }
+
+            .tools-list {
+                max-height: 180px;
+            }
+
+            .commands {
+                gap: 0.25rem;
+            }
+
+            .btn-small {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .tool-header {
+                padding: 0.5rem;
+            }
+
+            .tool-name {
+                font-size: 0.85rem;
+            }
+
+            .tool-desc {
+                font-size: 0.8rem;
+                max-height: 80px;
+                padding: 0 0.5rem 0.5rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 MCP Lite Web Chat</h1>
+        <div class="status">
+            <span class="status-dot"></span>
+            <span>Connected</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message system">
+                    <div class="message-content">
+                        Welcome to MCP Lite Web Chat! 🚀
+                        
+You can:
+• Chat normally with the AI assistant
+• Use commands like /help, /tools, /clear
+• Access all configured MCP tools automatically
+
+Type your message below to get started!
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Thinking...</span>
+            </div>
+
+            <div class="chat-input">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="Type your message or /help for commands..."
+                        autocomplete="off"
+                    >
+                    <button class="btn btn-primary" id="sendButton">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div>
+                <h3>Quick Commands</h3>
+                <div class="commands">
+                    <button class="btn btn-small" onclick="sendCommand('/help')">Help</button>
+                    <button class="btn btn-small" onclick="sendCommand('/tools')">Tools</button>
+                    <button class="btn btn-small" onclick="sendCommand('/status')">Status</button>
+                    <button class="btn btn-small" onclick="sendCommand('/clear')">Clear</button>
+                </div>
+            </div>
+
+            <div class="tools-list">
+                <h3>Available Tools<span class="tool-count" id="toolsCount"></span></h3>
+                <div id="toolsList">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MCPLiteChat {
+            constructor() {
+                this.sessionId = 'session-' + Date.now();
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.chatMessages = document.getElementById('chatMessages');
+                this.loading = document.getElementById('loading');
+                this.toolsList = document.getElementById('toolsList');
+
+                this.setupEventListeners();
+                this.loadTools();
+            }
+
+            setupEventListeners() {
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+            }
+
+            async sendMessage() {
+                const message = this.messageInput.value.trim();
+                if (!message) return;
+
+                this.addMessage(message, 'user');
+                this.messageInput.value = '';
+                this.setLoading(true);
+
+                // Create a placeholder for the streaming response
+                const assistantMessageDiv = this.createMessageElement('', 'assistant');
+                this.chatMessages.appendChild(assistantMessageDiv);
+                const contentDiv = assistantMessageDiv.querySelector('.message-content');
+                
+                // Track tool execution status
+                let currentToolExecution = null;
+
+                try {
+                    // Use EventSource for streaming
+                    const response = await fetch('/api/chat/stream', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            sessionId: this.sessionId
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+                    let fullContent = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        
+                        // Keep the last incomplete line in the buffer
+                        buffer = lines.pop() || '';
+
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.slice(6));
+                                    
+                                    if (data.type === 'chunk') {
+                                        fullContent += data.content;
+                                        this.updateMessageContent(contentDiv, fullContent, false);
+                                    } else if (data.type === 'complete') {
+                                        if (data.fullContent) {
+                                            fullContent = data.fullContent;
+                                        }
+                                        this.updateMessageContent(contentDiv, fullContent, true);
+                                        
+                                        // Clean up any remaining tool execution display
+                                        if (currentToolExecution) {
+                                            this.finalizeToolExecution(currentToolExecution);
+                                            currentToolExecution = null;
+                                        }
+                                    } else if (data.type === 'error') {
+                                        this.updateMessageContent(contentDiv, 'Error: ' + data.error, true);
+                                    } else if (data.type === 'tool_info') {
+                                        // Handle tool execution info
+                                        currentToolExecution = this.handleToolExecution(data.toolInfo, currentToolExecution);
+                                    }
+                                } catch (parseError) {
+                                    console.error('Error parsing SSE data:', parseError);
+                                }
+                            }
+                        }
+                    }
+
+                } catch (error) {
+                    this.updateMessageContent(contentDiv, 'Error: Failed to send message. Please try again.', true);
+                    console.error('Chat error:', error);
+                } finally {
+                    this.setLoading(false);
+                }
+            }
+
+            createMessageElement(content, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                
+                messageDiv.appendChild(contentDiv);
+                return messageDiv;
+            }
+
+            updateMessageContent(contentDiv, content, isComplete) {
+                if (this.isMarkdownContent(content)) {
+                    // Configure marked for better security and formatting
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true,
+                        sanitize: false // We'll use DOMPurify instead
+                    });
+                    
+                    const html = marked.parse(content);
+                    const cleanHtml = DOMPurify.sanitize(html);
+                    contentDiv.innerHTML = cleanHtml;
+                    contentDiv.className = 'message-content markdown';
+                } else {
+                    contentDiv.textContent = content;
+                    contentDiv.className = 'message-content text';
+                }
+                
+                if (isComplete) {
+                    this.scrollToBottom();
+                } else {
+                    // Smooth scroll during streaming
+                    this.scrollToBottom();
+                }
+            }
+
+            isMarkdownContent(content) {
+                // Detect if content likely contains markdown
+                const markdownIndicators = [
+                    /```[\s\S]*?```/, // code blocks
+                    /`[^`]+`/, // inline code
+                    /^\s*#{1,6}\s+/m, // headers
+                    /^\s*[\*\-\+]\s+/m, // lists
+                    /^\s*\d+\.\s+/m, // numbered lists
+                    /\*\*[^*]+\*\*/, // bold
+                    /\*[^*]+\*/, // italic
+                    /\[[^\]]+\]\([^\)]+\)/, // links
+                    /^\s*\|.*\|.*$/m, // tables
+                    /^\s*>/m // blockquotes
+                ];
+                
+                return markdownIndicators.some(pattern => pattern.test(content));
+            }
+
+            handleToolExecution(toolInfo, currentExecution) {
+                if (toolInfo.type === 'tool_start' && !toolInfo.toolName) {
+                    // This is the overall "Executing X tools..." message
+                    const executionId = `tool-execution-${Date.now()}`;
+                    const toolDiv = document.createElement('div');
+                    toolDiv.className = 'tool-execution';
+                    toolDiv.innerHTML = `
+                        <div class="tool-execution-header" onclick="this.toggleToolExecution('${executionId}')">
+                            <span>${toolInfo.message}</span>
+                            <span class="tool-execution-toggle" id="${executionId}-toggle">▼</span>
+                        </div>
+                        <div class="tool-execution-details" id="${executionId}-details"></div>
+                    `;
+                    
+                    // Add click handler for toggle
+                    const header = toolDiv.querySelector('.tool-execution-header');
+                    header.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.toggleToolExecution(executionId);
+                    });
+                    
+                    this.chatMessages.appendChild(toolDiv);
+                    this.scrollToBottom();
+                    
+                    return {
+                        id: executionId,
+                        element: toolDiv,
+                        detailsElement: toolDiv.querySelector('.tool-execution-details'),
+                        toolCalls: new Map()
+                    };
+                } else if (currentExecution && toolInfo.toolName) {
+                    // This is individual tool execution info
+                    const toolCallId = toolInfo.toolCallId;
+                    
+                    if (toolInfo.type === 'tool_start') {
+                        // Create new tool call record
+                        currentExecution.toolCalls.set(toolCallId, {
+                            name: toolInfo.toolName,
+                            input: toolInfo.input,
+                            output: null,
+                            status: 'running'
+                        });
+                    } else if (toolInfo.type === 'tool_complete' || toolInfo.type === 'tool_error') {
+                        // Update tool call with output
+                        const toolCall = currentExecution.toolCalls.get(toolCallId);
+                        if (toolCall) {
+                            toolCall.output = toolInfo.output;
+                            toolCall.status = toolInfo.type === 'tool_error' ? 'error' : 'completed';
+                        }
+                        
+                        if (toolInfo.type === 'tool_error') {
+                            currentExecution.element.classList.add('error');
+                        }
+                    }
+                    
+                    // Update the details display
+                    this.updateToolExecutionDetails(currentExecution);
+                    this.scrollToBottom();
+                    return currentExecution;
+                } else if (toolInfo.type === 'tool_complete' && !toolInfo.toolName) {
+                    // Overall completion
+                    if (currentExecution) {
+                        const header = currentExecution.element.querySelector('.tool-execution-header span');
+                        header.textContent = toolInfo.message;
+                        currentExecution.element.classList.add('completed');
+                        this.scrollToBottom();
+                    }
+                    return currentExecution;
+                }
+                
+                return currentExecution;
+            }
+
+            updateToolExecutionDetails(execution) {
+                const detailsHtml = Array.from(execution.toolCalls.values()).map(toolCall => `
+                    <div class="tool-call">
+                        <div class="tool-call-name">${toolCall.name} (${toolCall.status})</div>
+                        <div class="tool-call-section">
+                            <div class="tool-call-section-title">Input</div>
+                            <div class="tool-call-content">${toolCall.input || 'No input'}</div>
+                        </div>
+                        <div class="tool-call-section">
+                            <div class="tool-call-section-title">Output</div>
+                            <div class="tool-call-content">${toolCall.output || 'Waiting...'}</div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                execution.detailsElement.innerHTML = detailsHtml;
+            }
+
+            toggleToolExecution(executionId) {
+                const details = document.getElementById(`${executionId}-details`);
+                const toggle = document.getElementById(`${executionId}-toggle`);
+                
+                if (details && toggle) {
+                    const isExpanded = details.classList.contains('expanded');
+                    
+                    if (isExpanded) {
+                        details.classList.remove('expanded');
+                        toggle.classList.remove('expanded');
+                    } else {
+                        details.classList.add('expanded');
+                        toggle.classList.add('expanded');
+                    }
+                }
+            }
+
+            finalizeToolExecution(toolExecution) {
+                if (toolExecution && toolExecution.element) {
+                    toolExecution.element.classList.add('completed');
+                    this.scrollToBottom();
+                }
+            }
+
+            addMessage(content, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.textContent = content;
+                
+                messageDiv.appendChild(contentDiv);
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            setLoading(isLoading) {
+                this.loading.classList.toggle('show', isLoading);
+                this.sendButton.disabled = isLoading;
+                this.messageInput.disabled = isLoading;
+                
+                if (isLoading) {
+                    this.scrollToBottom();
+                }
+            }
+
+            scrollToBottom() {
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+
+            async loadTools() {
+                try {
+                    const response = await fetch('/api/tools');
+                    const data = await response.json();
+                    
+                    if (data.tools && data.tools.length > 0) {
+                        // Update tools count in sidebar
+                        document.getElementById('toolsCount').textContent = ` (${data.tools.length})`;
+                        
+                        // Update sidebar tools list
+                        this.toolsList.innerHTML = '';
+                        data.tools.forEach((tool, index) => {
+                            const toolDiv = document.createElement('div');
+                            toolDiv.className = 'tool-item';
+                            
+                            const hasDescription = tool.description && tool.description.trim();
+                            
+                            toolDiv.innerHTML = `
+                                <div class="tool-header">
+                                    <div class="tool-name">${tool.name}</div>
+                                    ${hasDescription ? '<span class="tool-toggle">▼</span>' : ''}
+                                </div>
+                                ${hasDescription ? `<div class="tool-desc" id="tool-desc-${index}">${tool.description}</div>` : ''}
+                            `;
+                            
+                            // Add click handler for toggle
+                            const header = toolDiv.querySelector('.tool-header');
+                            if (header && hasDescription) {
+                                header.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    this.toggleTool(index);
+                                });
+                            }
+                            
+                            this.toolsList.appendChild(toolDiv);
+                        });
+                    } else {
+                        this.toolsList.innerHTML = '<div class="tool-desc">No tools available</div>';
+                        document.getElementById('toolsCount').textContent = ' (0)';
+                    }
+                } catch (error) {
+                    this.toolsList.innerHTML = '<div class="tool-desc">Failed to load tools</div>';
+                    document.getElementById('toolsCount').textContent = ' (Error)';
+                    console.error('Error loading tools:', error);
+                }
+            }
+
+            truncateDescription(description) {
+                if (!description) return '';
+                // Remove extra whitespace and truncate if too long
+                const cleaned = description.replace(/\s+/g, ' ').trim();
+                return cleaned.length > 100 ? cleaned.substring(0, 100) + '...' : cleaned;
+            }
+
+            toggleTool(index) {
+                const descElement = document.getElementById(`tool-desc-${index}`);
+                const toggleElement = document.querySelector(`#toolsList .tool-item:nth-child(${index + 1}) .tool-toggle`);
+                
+                if (descElement && toggleElement) {
+                    const isExpanded = descElement.classList.contains('expanded');
+                    
+                    if (isExpanded) {
+                        descElement.classList.remove('expanded');
+                        toggleElement.classList.remove('expanded');
+                    } else {
+                        descElement.classList.add('expanded');
+                        toggleElement.classList.add('expanded');
+                    }
+                }
+            }
+        }
+
+        function sendCommand(command) {
+            const chat = window.mcpChat;
+            if (chat) {
+                chat.messageInput.value = command;
+                chat.sendMessage();
+            }
+        }
+
+
+        // Initialize the chat when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.mcpChat = new MCPLiteChat();
+        });
+    </script>
+</body>
+</html>
