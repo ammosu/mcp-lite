@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev add-server` - Interactive wizard to add new MCP servers
 - `npm run dev servers` - List all configured MCP servers and their status
 - `npm run dev config` - Display current configuration (LLM provider, model, etc.)
+- `npm run dev batch` - Process questions from CSV file in batch mode with full tool execution tracking
 
 ### Build and Production
 - `npm run build` - Compile TypeScript to JavaScript in `/dist`
@@ -35,6 +36,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - System messages (like /clear confirmation) auto-disappear after 3 seconds
 - Full internationalization support with Traditional Chinese (Taiwan) and English
 - Language preferences saved automatically in browser localStorage
+
+**Batch Processing:**
+- CSV format: `id,question,context,expectedResult` (context and expectedResult are optional)
+- Example: `npm run dev -- batch -i questions.csv -o results.csv -f json -c 3`
+- Options: format (csv/json), concurrency, temperature, max-tokens, context inclusion
+- Outputs detailed tool execution logs and processing statistics
+- Supports both CSV and JSON output formats with comprehensive tool call tracking
 
 **General:**
 - For SSE servers, ensure the remote endpoint is running before connecting
@@ -61,6 +69,13 @@ MCP Lite is a lightweight MCP (Model Context Protocol) client that bridges LLMs 
 - Manages conversation history and context
 - Handles automatic tool execution and result processing
 - Provides tool execution callbacks with detailed input/output for web interface
+
+**Batch Processor (`src/batch/processor.ts`)**
+- Processes questions from CSV files with full tool execution tracking
+- Supports concurrent processing with configurable parallelism
+- Records detailed tool call logs including input/output and execution time
+- Exports results in CSV or JSON format with comprehensive metadata
+- Handles error recovery and provides detailed processing statistics
 
 **MCP Hub (`src/mcp/hub.ts`)**
 - Central connection manager for all MCP servers

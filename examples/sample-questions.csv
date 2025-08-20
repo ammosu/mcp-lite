@@ -1,0 +1,6 @@
+id,question,context,expectedResult
+Q1,What is the capital of France?,Geography questions,Paris
+Q2,Calculate 25 * 17,Mathematics problems,425
+Q3,What are the benefits of using TypeScript over JavaScript?,Programming questions,Better type safety and development experience
+Q4,How do you reverse a string in Python?,Programming tutorial,Use slicing [::-1] or reversed() function
+Q5,What is the difference between let and const in JavaScript?,JavaScript fundamentals,let allows reassignment while const does not

@@ -1,0 +1,4 @@
+id,question,context,expectedResult
+QUICK1,What is 10 + 15?,Simple math,25
+QUICK2,What is the capital of France?,Basic geography,Paris
+QUICK3,How many files are in the current directory?,File system query using tools,Number count with file listing

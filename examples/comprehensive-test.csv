@@ -1,0 +1,16 @@
+id,question,context,expectedResult
+Q1,What is 2 + 2?,Basic arithmetic calculation,4
+Q2,What is the capital of Japan?,Geography knowledge question,Tokyo
+Q3,Explain the difference between let and const in JavaScript,Programming concepts for beginners,"let allows reassignment, const does not"
+Q4,How do you reverse a string in Python?,Python programming tutorial,Use slicing [::-1] or reversed() function
+Q5,What are the main benefits of using TypeScript over JavaScript?,Software development best practices,Better type safety and IDE support
+Q6,Calculate the area of a circle with radius 5,Mathematics problem using formula A = πr²,Approximately 78.54 square units
+Q7,List the first 5 prime numbers,Number theory question,"2, 3, 5, 7, 11"
+Q8,What is the difference between HTTP and HTTPS?,Web technology concepts,HTTPS includes SSL/TLS encryption for security
+Q9,How do you create a virtual environment in Python?,Python development setup,Use python -m venv or virtualenv
+Q10,What is the time complexity of binary search?,Algorithm analysis,O(log n)
+Q11,What files are in the current directory?,File system operation using MCP tools,Should use file listing tools if available
+Q12,What is the current working directory?,System information query,Should show current directory path
+Q13,How would you search for files containing the word 'config'?,File search operation,Use grep or find command with MCP tools
+Q14,Can you show me the contents of package.json?,File reading operation,Should display package.json contents using tools
+Q15,What is the weather like today?,External API query,Depends on available weather MCP tools

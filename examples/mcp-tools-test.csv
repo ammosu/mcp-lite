@@ -1,0 +1,11 @@
+id,question,context,expectedResult
+TOOL1,List all files in the current directory,File system operations,Directory listing using file tools
+TOOL2,Show me the contents of README.md,File reading operation,README content using read tools
+TOOL3,What is the current working directory path?,System information,Current directory path
+TOOL4,Search for files containing the word 'import' in the src directory,Code search operation,Files with import statements
+TOOL5,Show me the package.json file contents,Configuration file reading,Package.json content
+TOOL6,Find all TypeScript files in the project,File pattern matching,List of .ts files
+TOOL7,Show me the git status of this repository,Version control information,Git status output
+TOOL8,List all directories in the current folder,Directory listing,Subdirectories only
+TOOL9,Search for the word 'function' in JavaScript files,Code pattern search,Files containing function keyword
+TOOL10,Show me the size of all files in the current directory,File system information,File sizes listing
