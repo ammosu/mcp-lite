@@ -12,11 +12,11 @@
     "postinstall": "npm run verify"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.4",
-    "openai": "^4.73.0",
-    "@anthropic-ai/sdk": "^0.38.0",
-    "dotenv": "^16.4.7",
-    "zod": "^3.24.1",
+    "@modelcontextprotocol/sdk": "^1.17.3",
+    "openai": "^4.104.0",
+    "@anthropic-ai/sdk": "^0.60.0",
+    "dotenv": "^16.6.1",
+    "zod": "^3.25.76",
     "commander": "^12.1.0",
     "chalk": "^5.4.1",
     "inquirer": "^12.9.3"
@@ -26,5 +26,10 @@
     "@types/inquirer": "^9.0.9",
     "typescript": "^5.7.3",
     "tsx": "^4.19.2"
+  },
+  "overrides": {
+    "ajv": "^8.17.1",
+    "uri-js": "^4.4.1",
+    "whatwg-url": "^14.2.0"
   }
 }
